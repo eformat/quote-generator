@@ -1,0 +1,53 @@
+{#include base.html}
+{#title}Quotes{/title}
+{#contents}
+<table class="table table-striped table-bordered" up-target=".container" up-hungry poll>
+    <thead>
+    <tr>
+        <th scope="col" class="fit">Symbol</th>
+        <th scope="col" class="fit">Price</th>
+        <th scope="col" class="fit">Bid</th>
+        <th scope="col" class="fit">Ask</th>
+    </tr>
+    </thead>
+
+    {#if quotes.size == 0}
+    <tr>
+        <td colspan="4">No data found.</td>
+    </tr>
+    {#else}
+
+    {#for quote in quotes}
+    <tr>
+        <th scope="row">#{quote.symbol}</th>
+        <td>
+            {quote.price}
+        </td>
+        <td>
+            {quote.bid}
+        </td>
+        <td>
+            {quote.ask}
+        </td>
+    </tr>
+    {/for}
+    {/if}
+</table>
+<script>
+up.compiler('[poll]', (element) => {
+    let interval = parseInt(element.getAttribute('poll') || 2000);
+
+    let timer = setInterval(() => {
+        // Don't reload when document is hidden.
+        if (! document.hidden) {
+            up.reload(element);
+        }
+    }, interval);
+
+    return function() {
+        clearInterval(timer);
+    };
+});
+</script>
+{/contents}
+{/include}
