@@ -8,6 +8,7 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
 import org.acme.data.Quote;
+import org.acme.data.Quotes;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -40,14 +41,14 @@ public class QuoteResource {
     @Consumes(MediaType.TEXT_HTML)
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance listQuotes() {
-        return quotes.data("quotes", getQuotes());
+        return quotes.data("quotes", getQuotes().getQuotes());
     }
 
     @GET
     @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @SseElementType(MediaType.APPLICATION_JSON)
-    public Publisher<Quote> stream() {
+    public Publisher<Quotes> stream() {
         Multi<Long> ticks = Multi.createFrom().ticks().every(Duration.ofSeconds(2)).onOverflow().drop();
         return ticks.on().subscribed(subscription -> log.info("We are subscribed!"))
                 .on().cancellation(() -> log.info("Downstream has cancelled the interaction"))
@@ -58,20 +59,20 @@ public class QuoteResource {
                 ).merge();
     }
 
-    @ConsumeEvent(value = "AddQuote")
-    public Uni<Quote> addQuote(Quote quote) {
-        log.info("addQuote {}", quote);
-        return Uni.createFrom().item(quote);
+    @ConsumeEvent(value = "AddQuotes")
+    public Uni<Quotes> addQuote(Quotes quotes) {
+        log.info("addQuote {}", quotes);
+        return Uni.createFrom().item(quotes);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<Quote> quote() {
-        return bus.<Quote>request("AddQuote", getQuote("RHT", "Red Hat")).onItem().apply(Message::body);
+    public Uni<Quotes> quote() {
+        return bus.<Quotes>request("AddQuotes", getQuotes()).onItem().apply(Message::body);
     }
 
-    private List<Quote> getQuotes() {
-        List quotes = new ArrayList();
+    private Quotes getQuotes() {
+        Quotes quotes = new Quotes();
         quotes.add(getQuote("RHT", "Red Hat"));
         quotes.add(getQuote("FB", "Facebook"));
         quotes.add(getQuote("AMZN", "Amazon"));
