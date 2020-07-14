@@ -28,4 +28,4 @@ Browse to
 http://localhost:8080/quotes
 ```
 
-![images/quotes.gif](images/quotes.gif)
+<img src="images/quotes.gif" width="200">
