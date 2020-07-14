@@ -13,9 +13,6 @@ mvn quarkus:dev
 
 Tests
 ```
-# Browse to
-http://localhost:8080/quotes
-
 # json
 http -j localhost:8080/quotes
 
@@ -26,3 +23,9 @@ http localhost:8080/quotes
 http localhost:8080/quotes/stream --stream
 ```
 
+Browse to
+```bash
+http://localhost:8080/quotes
+```
+
+![images/quotes.gif](images/quotes.gif)
