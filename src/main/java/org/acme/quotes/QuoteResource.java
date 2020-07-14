@@ -40,9 +40,7 @@ public class QuoteResource {
     @Consumes(MediaType.TEXT_HTML)
     @Produces(MediaType.TEXT_HTML)
     public TemplateInstance listQuotes() {
-        List<Quote> q = new ArrayList<>();
-        q.add(getQuote());
-        return quotes.data("quotes", q);
+        return quotes.data("quotes", getQuotes());
     }
 
     @GET
@@ -69,14 +67,26 @@ public class QuoteResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<Quote> quote() {
-        return bus.<Quote>request("AddQuote", getQuote()).onItem().apply(Message::body);
+        return bus.<Quote>request("AddQuote", getQuote("RHT", "Red Hat")).onItem().apply(Message::body);
     }
 
-    private Quote getQuote() {
+    private List<Quote> getQuotes() {
+        List quotes = new ArrayList();
+        quotes.add(getQuote("RHT", "Red Hat"));
+        quotes.add(getQuote("FB", "Facebook"));
+        quotes.add(getQuote("AMZN", "Amazon"));
+        quotes.add(getQuote("NFLX", "Netflix"));
+        quotes.add(getQuote("GOOGL", "Google"));
+        quotes.add(getQuote("MSFT", "Microsoft"));
+        return quotes;
+    }
+
+
+    private Quote getQuote(String symbol, String name) {
         Quote quote = new Quote();
         quote.setExchange("vert.x stock exchange");
-        quote.setSymbol("RHT");
-        quote.setName("Red Hat");
+        quote.setSymbol(symbol);
+        quote.setName(name);
         quote.setBid(100 + random.nextInt(100 / 2));
         quote.setAsk(100 + random.nextInt(100 / 2));
         quote.setVolume(10000);
