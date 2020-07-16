@@ -80,7 +80,6 @@ public class QuoteResource {
         return quotes;
     }
 
-
     private Quote getQuote(String symbol, String name) {
         Quote quote = new Quote();
         quote.setExchange("vert.x stock exchange");
