@@ -48,13 +48,9 @@ public class QuoteResource {
     @SseElementType(MediaType.APPLICATION_JSON)
     public Publisher<Quotes> stream() {
         Multi<Long> ticks = Multi.createFrom().ticks().every(Duration.ofSeconds(2)).onOverflow().drop();
-        return ticks.on().subscribed(subscription -> log.info("We are subscribed!"))
-                .on().cancellation(() -> log.info("Downstream has cancelled the interaction"))
-                .onFailure().invoke(failure -> log.warn("Failed with " + failure.getMessage()))
-                .onCompletion().invoke(() -> log.info("Completed"))
-                .onItem().produceUni(
-                        x -> quote()
-                ).merge();
+        return ticks.onItem().transformToUniAndMerge(
+                x -> quote()
+        );
     }
 
     @ConsumeEvent(value = "AddQuotes")
@@ -66,7 +62,7 @@ public class QuoteResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<Quotes> quote() {
-        return bus.<Quotes>request("AddQuotes", getQuotes()).onItem().apply(Message::body);
+        return bus.<Quotes>request("AddQuotes", getQuotes()).onItem().transform(Message::body);
     }
 
     private Quotes getQuotes() {
