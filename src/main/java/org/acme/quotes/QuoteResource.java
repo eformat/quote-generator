@@ -9,7 +9,7 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
 import org.acme.data.Quote;
 import org.acme.data.Quotes;
-import org.jboss.resteasy.annotations.SseElementType;
+import org.jboss.resteasy.reactive.RestStreamElementType;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +44,7 @@ public class QuoteResource {
 
     @GET
     @Path("/stream")
-    @Produces(MediaType.SERVER_SENT_EVENTS)
-    @SseElementType(MediaType.APPLICATION_JSON)
+    @RestStreamElementType(MediaType.APPLICATION_JSON)
     public Publisher<Quotes> stream() {
         Multi<Long> ticks = Multi.createFrom().ticks().every(Duration.ofSeconds(2)).onOverflow().drop();
         return ticks.onItem().transformToUniAndMerge(
