@@ -6,7 +6,7 @@ IMG := $(REPOSITORY):latest
 
 # clean compile
 compile:
-	mvn clean package -DskipTests -Pnative
+	mvn clean package -DskipTests
 
 # Podman Login
 podman-login:
@@ -14,11 +14,11 @@ podman-login:
 
 # Build the oci image no compile
 podman-build-nocompile:
-	podman build --no-cache . -t ${IMG} -f Dockerfile.native
+	podman build --no-cache . -t ${IMG} -f Dockerfile.jvm
 
 # Build the oci image
 podman-build: compile
-	podman build --no-cache . -t ${IMG} -f Dockerfile.native
+	podman build --no-cache . -t ${IMG} -f Dockerfile.jvm
 
 # Push the oci image
 podman-push: podman-build

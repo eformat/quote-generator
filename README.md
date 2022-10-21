@@ -29,3 +29,9 @@ http://localhost:8080/quotes
 ```
 
 <img src="images/quotes.gif" width="400">
+
+Run on OpenShift
+```bash
+oc new-app quay.io/eformat/quote-generator:latest
+oc create route edge quote-generator --service=quote-generator --port=8080
+```
