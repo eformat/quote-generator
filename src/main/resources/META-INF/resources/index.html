@@ -104,6 +104,17 @@
         .example-code h3 {
             font-weight: 200;
         }
+
+        pre code {
+          display: block;
+          background: none;
+          white-space: pre;
+          -webkit-overflow-scrolling: touch;
+          overflow-x: none;
+          max-width: 100%;
+          min-width: 100px;
+          padding: 0;
+        }
     </style>
 </head>
 <body>
@@ -119,6 +130,13 @@
         <h2>What can I do from here?</h2>
 
         <li><a href="/quotes" target="_blank">Quotes</a></li>
+
+        </b>
+
+        You can also try:
+        <pre><code>
+           curl --max-time 9999999 -N http://localhost:8080/quotes/stream
+        </code></pre>
 
     </div>
     <div class="right-column">
