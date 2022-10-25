@@ -2,7 +2,9 @@ package org.acme.quotes;
 
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.scheduler.Scheduled;
 import io.quarkus.vertx.ConsumeEvent;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -21,6 +23,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 @Path("/quotes")
@@ -28,6 +32,19 @@ public class QuoteResource {
 
     private final Logger log = LoggerFactory.getLogger(QuoteResource.class);
     private final Random random = new Random();
+
+    // we want individual streams to show the same prices
+    private final static Map<String, Double> bidPrices = new HashMap<>();
+    private final static Map<String, Double> askPrices = new HashMap<>();
+
+    // FANGMR's
+    private final Map<String, String> symbols = Map.of(
+            "FB", "Facebook",
+            "AMZN", "Amazon",
+            "NFLX", "Netflix",
+            "GOOGL", "Google",
+            "MSFT", "Microsoft",
+            "RHT", "Red Hat");
 
     @Inject
     EventBus bus;
@@ -38,8 +55,9 @@ public class QuoteResource {
     @GET
     @Consumes(MediaType.TEXT_HTML)
     @Produces(MediaType.TEXT_HTML)
+    @Blocking
     public TemplateInstance listQuotes() {
-        return quotes.data("quotes", getQuotes().getQuotes());
+        return quotes.data("quotes", quote().await().atMost(Duration.ofMillis(10)).getQuotes());
     }
 
     @GET
@@ -60,17 +78,15 @@ public class QuoteResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<Quotes> quote() {
+        // this is our single source of quotes
         return bus.<Quotes>request("AddQuotes", getQuotes()).onItem().transform(Message::body);
     }
 
     private Quotes getQuotes() {
         Quotes quotes = new Quotes();
-        quotes.add(getQuote("RHT", "Red Hat"));
-        quotes.add(getQuote("FB", "Facebook"));
-        quotes.add(getQuote("AMZN", "Amazon"));
-        quotes.add(getQuote("NFLX", "Netflix"));
-        quotes.add(getQuote("GOOGL", "Google"));
-        quotes.add(getQuote("MSFT", "Microsoft"));
+        symbols.forEach(
+                (k, v) -> quotes.add(getQuote(k, v))
+        );
         return quotes;
     }
 
@@ -79,11 +95,31 @@ public class QuoteResource {
         quote.setExchange("vert.x stock exchange");
         quote.setSymbol(symbol);
         quote.setName(name);
-        quote.setBid(100 + random.nextInt(100 / 2));
-        quote.setAsk(100 + random.nextInt(100 / 2));
+        quote.setBid(getPrice(symbol, "bid"));
+        quote.setAsk(getPrice(symbol, "ask"));
         quote.setVolume(10000);
         quote.setPrice(100.0);
         quote.setShare(10000 / 2);
         return quote;
     }
+
+    @Scheduled(every = "3s")
+    protected void incrementPrices() {
+        symbols.forEach(
+                (k, v) -> incrementPrice(k)
+        );
+    }
+
+    private void incrementPrice(String symbol) {
+        bidPrices.put(symbol, Double.valueOf(100 + random.nextInt(100 / 2)));
+        askPrices.put(symbol, Double.valueOf(100 + random.nextInt(100 / 2)));
+    }
+
+    private double getPrice(String symbol, String bidask) {
+        if (bidask.equalsIgnoreCase("bid"))
+            return bidPrices.getOrDefault(symbol, 100.0).doubleValue();
+        else
+            return askPrices.getOrDefault(symbol, 100.0).doubleValue();
+    }
+
 }
