@@ -54,7 +54,6 @@ public class QuoteResource {
 
     @ConsumeEvent(value = "AddQuotes")
     public Uni<Quotes> addQuote(Quotes quotes) {
-        log.info("addQuote {}", quotes);
         return Uni.createFrom().item(quotes);
     }
 
