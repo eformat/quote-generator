@@ -110,9 +110,32 @@ public class QuoteResource {
         );
     }
 
+    // 50% of the time..
+    static int rand50() {
+        return (int) (10 * Math.random()) & 1;
+    }
+
+    // 75% of the time..
+    static int rand75() {
+        return rand50() | rand50();
+    }
+
     private void incrementPrice(String symbol) {
-        bidPrices.put(symbol, Double.valueOf(100 + random.nextInt(100 / 2)));
-        askPrices.put(symbol, Double.valueOf(100 + random.nextInt(100 / 2)));
+        int askPrice = Integer.valueOf(100 + random.nextInt(100 / 2));
+        int bidPrice;
+        // 75% of the time we get a negative bid-ask spread
+        if (rand75() > 0) {
+            bidPrice = random.ints(askPrice - 20, askPrice )
+                    .findFirst()
+                    .getAsInt();
+        } else {
+            bidPrice = random.ints(askPrice, askPrice + 20)
+                    .findFirst()
+                    .getAsInt();
+        }
+
+        bidPrices.put(symbol, Double.valueOf(bidPrice));
+        askPrices.put(symbol, Double.valueOf(askPrice));
     }
 
     private double getPrice(String symbol, String bidask) {
