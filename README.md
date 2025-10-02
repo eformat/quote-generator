@@ -5,6 +5,7 @@
 - Reactive Mutiny
 - Vert.x event bus
 - Jsonb
+- Hibernate + JDBC
 
 Compile and run locally
 ```

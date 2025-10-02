@@ -1,5 +1,15 @@
 package org.acme.quotes;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Flow.Publisher;
+import org.acme.data.Quote;
+import org.acme.data.Quotes;
+import org.jboss.resteasy.reactive.RestStreamElementType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.scheduler.Scheduled;
@@ -10,22 +20,13 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.acme.data.Quote;
-import org.acme.data.Quotes;
-import org.jboss.resteasy.reactive.RestStreamElementType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.Flow.Publisher;
 
 @Path("/quotes")
 public class QuoteResource {
@@ -52,16 +53,20 @@ public class QuoteResource {
     @Inject
     Template quotes;
 
+    @Inject
+    EntityManager em;
+
     @GET
     @Consumes(MediaType.TEXT_HTML)
     @Produces(MediaType.TEXT_HTML)
     @Blocking
     public TemplateInstance listQuotes() {
-        return quotes.data("quotes", quote().await().atMost(Duration.ofMillis(10)).getQuotes());
+        return quotes.data("quotes", quote().await().atMost(Duration.ofSeconds(2)).getQuotes());
     }
 
     @GET
     @Path("/stream")
+    @Produces(MediaType.SERVER_SENT_EVENTS)
     @RestStreamElementType(MediaType.APPLICATION_JSON)
     public Publisher<Quotes> stream() {
         Multi<Long> ticks = Multi.createFrom().ticks().every(Duration.ofSeconds(2)).onOverflow().drop();
@@ -71,8 +76,23 @@ public class QuoteResource {
     }
 
     @ConsumeEvent(value = "AddQuotes")
+    @Blocking
+    @Transactional
     public Uni<Quotes> addQuote(Quotes quotes) {
+        if (quotes != null && quotes.getQuotes() != null) {
+            quotes.getQuotes().forEach(em::persist);
+        }
         return Uni.createFrom().item(quotes);
+    }
+
+    @GET
+    @Path("/count")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Blocking
+    @Transactional
+    public String countQuotes() {
+        Long count = em.createQuery("select count(q) from Quote q", Long.class).getSingleResult();
+        return String.valueOf(count);
     }
 
     @GET

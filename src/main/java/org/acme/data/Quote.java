@@ -1,6 +1,19 @@
 package org.acme.data;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "quotes")
 public class Quote {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String exchange;
     private String name;
@@ -11,8 +24,17 @@ public class Quote {
     private double bid;
     private double ask;
     private int share;
+    @Column(name = "quote_value")
     private double value;
     private int volume;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getExchange() {
         return exchange;
@@ -105,7 +127,8 @@ public class Quote {
     @Override
     public String toString() {
         return "Quote{" +
-                "exchange='" + exchange + '\'' +
+                "id=" + id +
+                ", exchange='" + exchange + '\'' +
                 ", name='" + name + '\'' +
                 ", period=" + period +
                 ", symbol='" + symbol + '\'' +
