@@ -8,6 +8,7 @@
         <th scope="col" class="fit">Price</th>
         <th scope="col" class="fit">Bid</th>
         <th scope="col" class="fit">Ask</th>
+        <th scope="col" class="fit">Spread</th>
     </tr>
     </thead>
 
@@ -28,6 +29,9 @@
         </td>
         <td>
             {quote.ask}
+        </td>
+        <td class="{#if quote.spread > 0}text-danger{/if}{#if quote.spread < 0}text-success{/if}">
+            {quote.spread}
         </td>
     </tr>
     {/for}

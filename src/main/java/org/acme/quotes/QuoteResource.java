@@ -115,10 +115,15 @@ public class QuoteResource {
         quote.setExchange("vert.x stock exchange");
         quote.setSymbol(symbol);
         quote.setName(name);
-        quote.setBid(getPrice(symbol, "bid"));
-        quote.setAsk(getPrice(symbol, "ask"));
+        double bid = getPrice(symbol, "bid");
+        double ask = getPrice(symbol, "ask");
+        double mid = (bid + ask) / 2.0;
+        double spread = ask - bid;
+        quote.setBid(bid);
+        quote.setAsk(ask);
         quote.setVolume(10000);
-        quote.setPrice(100.0);
+        quote.setPrice(mid);
+        quote.setSpread(spread);
         quote.setShare(10000 / 2);
         return quote;
     }

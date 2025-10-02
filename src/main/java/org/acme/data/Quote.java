@@ -27,6 +27,7 @@ public class Quote {
     @Column(name = "quote_value")
     private double value;
     private int volume;
+    private double spread;
 
     public Long getId() {
         return id;
@@ -124,6 +125,14 @@ public class Quote {
         this.volume = volume;
     }
 
+    public double getSpread() {
+        return spread;
+    }
+
+    public void setSpread(double spread) {
+        this.spread = spread;
+    }
+
     @Override
     public String toString() {
         return "Quote{" +
@@ -139,6 +148,7 @@ public class Quote {
                 ", share=" + share +
                 ", value=" + value +
                 ", volume=" + volume +
+                ", spread=" + spread +
                 '}';
     }
 }
